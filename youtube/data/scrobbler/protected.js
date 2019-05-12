@@ -203,6 +203,40 @@ function hideLove() {
   }, '*');
 }
 
+function cleanSongName(name) {
+  let cleanName = name.replace(/\"/, ''); // remove quotations
+  cleanName = cleanName.replace(/\(.*?\)/, ''); //remove within brackets
+  cleanName = cleanName.replace(/\[.*?\]/, ''); //remove within brackets
+  return cleanName.trim();
+}
+
+// song is a map with two keys artist and track
+function infoToSong({title, author}) {
+  title = title.replace(/^\[[^\]]+\]\s*-*\s*/i, '');
+  const separators = [
+    ' -- ', '--', ' - ', ' – ', ' — ',
+    ' // ', '-', '–', '—', ':', '|', '///', '/'
+  ];
+
+  let artist = ''; track = '';
+
+  const separator = separators.find(s => title.indexOf(s) !== -1);
+  if (separator) {
+    [artist, track] = title.split(separator);
+    artist = cleanSongName(artist);
+    track = cleanSongName(track);
+  }
+  else {
+    artist = author.replace('VEVO', ''),
+    track = title
+  }
+
+  return {
+    artist,
+    track
+  }
+}
+
 var registerToMessages = () => {
   window.addEventListener('message', ({data}) => {
     if (data && data.method) {
@@ -237,29 +271,7 @@ var registerToMessages = () => {
               hideLove();
             }
             else {
-              const song = (({
-                title,
-                author
-              }) => {
-                title = title.replace(/^\[[^\]]+\]\s*-*\s*/i, '');
-                const separators = [
-                  ' -- ', '--', ' - ', ' – ', ' — ',
-                  ' // ', '-', '–', '—', ':', '|', '///', '/'
-                ].filter(s => title.indexOf(s) !== -1);
-                if (separators.length) {
-                  const [artist, track] = title.split(separators[0]);
-                  return {
-                    artist,
-                    track
-                  };
-                }
-                else {
-                  return {
-                    artist: author.replace('VEVO', ''),
-                    track: title
-                  };
-                }
-              })(info);
+              const song = infoToSong(info);
               artist = song.artist;
               track = song.track;
               // console.log(artist, track);
