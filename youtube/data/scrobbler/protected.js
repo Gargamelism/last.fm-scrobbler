@@ -34,6 +34,14 @@ var timer = {
   }
 };
 
+function getSeconds(timeString) {
+  if(timeString) {    
+    return timeString.split(':').
+                      reduce((seconds, currentTime) => 
+                                    (60 * seconds) + parseInt(currentTime));
+  }
+}
+
 function check() {
   // Check if this track is indexed or not
   chrome.runtime.sendMessage({
@@ -58,7 +66,10 @@ Category: ${category}`);
         src: chrome.runtime.getURL('/data/love/unprotected.js?loved=' + resp.track.userloved)
       }));
       // install track observer
-      timer.duration = Math.min(Math.round(duration) - 10, 4 * 60);
+      const elapsedTimeFromStartStr = isYoutube ? document.getElementsByClassName('ytp-time-current')[0].textContent : '00:20';
+      const elapsedTimeFromStart = getSeconds(elapsedTimeFromStartStr) + 10; // extra time to accomodate slow connections
+
+      timer.duration = Math.min(Math.round(duration) - elapsedTimeFromStart, 4 * 60);
       timer.id = window.setInterval(timer.update, 1000);
     }
     else {
